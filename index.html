@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Green Tea</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* General Styles */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        h1 {
+            margin-bottom: 1em;
+        }
+
+        /* Light Mode Styles */
+        body.light-mode {
+            background-color: #f4f4f4;
+            color: #000;
+        }
+
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background-color: #1e1e1e;
+            color: #fff;
+        }
+
+        /* Main Menu Styles */
+        .main-menu-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .main-menu-container {
+            background: #333;
+        }
+
+        #username {
+            margin-bottom: 1em;
+            padding: 0.5em;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Chat Page Styles */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1000px;
+            height: 70%;
+            max-height: 700px;
+            position: relative;
+        }
+
+        body.dark-mode .chat-container {
+            background: #333;
+        }
+
+        #chat-box {
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 1em;
+            background: #f9f9f9;
+            border-radius: 5px;
+            margin-bottom: 1em;
+            word-wrap: break-word;
+        }
+
+        body.dark-mode #chat-box {
+            background: #444;
+            border: 1px solid #555;
+        }
+
+        .message {
+            position: relative;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #e5e5ea;
+            margin-bottom: 10px;
+        }
+
+        body.dark-mode .message {
+            background-color: #555;
+        }
+
+        #message {
+            width: 100%;
+            padding: 0.5em;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        body.dark-mode #message {
+            background: #444;
+            border: 1px solid #555;
+            color: #fff;
+        }
+
+        #send-button {
+            padding: 0.5em 1em;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            margin-top: 1em;
+        }
+
+        #send-button:hover {
+            background-color: #45a049;
+        }
+
+        /* Settings Button Styles */
+        #settings-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #4CAF50;
+        }
+
+        #settings-button:hover {
+            color: #45a049;
+        }
+
+        /* Leave Button Styles */
+        #leave-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            color: #4CAF50;
+        }
+
+        #leave-button:hover {
+            color: #45a049;
+        }
+
+        /* Settings Page Styles */
+        .settings-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        body.dark-mode .settings-container {
+            background: #333;
+        }
+
+        /* Hide Elements Initially */
+        #chat-page, #settings-page {
+            display: none;
+        }
+
+        #main-menu {
+            display: flex;
+        }
+
+        /* Three-Dot Menu Styles */
+        .menu-options {
+            display: none;
+            position: absolute;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 1000; /* Ensure menu options are above other elements */
+        }
+
+        body.dark-mode .menu-options {
+            background: #444;
+            border: 1px solid #555;
+        }
+
+        .menu-options button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px;
+            margin: 2px;
+            cursor: pointer;
+        }
+
+        .menu-options button:hover {
+            background: #45a049;
+        }
+
+        .three-dot-menu {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        body.dark-mode .three-dot-menu {
+            color: #fff;
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <!-- Main Menu -->
+    <div class="main-menu-container" id="main-menu">
+        <h1>Project Green Tea</h1>
+        <p>A chat application started on July 21, 2024.</p>
+        <input type="text" id="username" placeholder="Enter your username">
+        <button onclick="login()">Join</button>
+    </div>
+
+    <!-- Chat Page -->
+    <div class="chat-container" id="chat-page">
+        <h1>Chat</h1>
+        <button id="settings-button" onclick="openSettings()"><i class="fas fa-cog"></i></button>
+        <button id="leave-button" onclick="leaveRoom()"><i class="fas fa-sign-out-alt"></i></button>
+        <div id="chat-box"></div>
+        <input type="text" id="message" placeholder="Type a message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="settings-container" id="settings-page">
+        <h1>Settings</h1>
+        <label>
+            <input type="checkbox" id="dark-mode-toggle"> Dark Mode
+        </label>
+        <button onclick="goBack()">Back</button>
+    </div>
+
+    <script>
+        localStorage.clear(); // Clear local storage
+
+        // Function to handle login
+        function login() {
+            const enteredUsername = document.getElementById('username').value;
+            if (enteredUsername) {
+                localStorage.setItem('username', enteredUsername);
+                document.getElementById('main-menu').style.display = 'none';
+                document.getElementById('chat-page').style.display = 'flex';
+            } else {
+                alert('Please enter a username');
+            }
+        }
+
+        // Function to send message
+        function sendMessage() {
+            const messageInput = document.getElementById('message');
+            const message = messageInput.value.trim();
+            if (message) {
+                const chatBox = document.getElementById('chat-box');
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.innerHTML = `
+                    <span class="username">${localStorage.getItem('username')}:</span>
+                    <span class="message-text">${message}</span>
+                    <button class="three-dot-menu" onclick="toggleMenu(event)">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <div class="menu-options">
+                        <button onclick="editMessage(event)">Edit</button>
+                        <button onclick="deleteMessage(event)">Delete</button>
+                    </div>
+                `;
+                chatBox.appendChild(messageElement);
+                messageInput.value = '';
+                chatBox.scrollTop = chatBox.scrollHeight;
+            }
+        }
+
+        // Function to toggle the three-dot menu
+        function toggleMenu(event) {
+            const allMenus = document.querySelectorAll('.menu-options');
+            allMenus.forEach(menu => menu.style.display = 'none');
+            const menuOptions = event.target.closest('.message').querySelector('.menu-options');
+            menuOptions.style.display = 'block';
+            event.stopPropagation(); // Prevents event from bubbling up to the document
+        }
+
+        // Function to edit a message
+        function editMessage(event) {
+            const messageElement = event.target.closest('.message');
+            const messageTextElement = messageElement.querySelector('.message-text');
+            const newMessage = prompt('Edit your message:', messageTextElement.innerText.replace(' (edited)', ''));
+            if (newMessage !== null) {
+                messageTextElement.innerText = newMessage + ' (edited)';
+            }
+            event.stopPropagation();
+        }
+
+        // Function to delete a message
+        function deleteMessage(event) {
+            const messageElement = event.target.closest('.message');
+            messageElement.remove();
+            event.stopPropagation();
+        }
+
+        // Function to handle dark mode toggle
+        document.getElementById('dark-mode-toggle').addEventListener('change', function() {
+            document.body.classList.toggle('dark-mode');
+            document.body.classList.toggle('light-mode');
+        });
+
+        // Function to open settings
+        function openSettings() {
+            document.getElementById('chat-page').style.display = 'none';
+            document.getElementById('settings-page').style.display = 'flex';
+        }
+
+        // Function to go back from settings
+        function goBack() {
+            document.getElementById('settings-page').style.display = 'none';
+            document.getElementById('chat-page').style.display = 'flex';
+        }
+
+        // Function to leave the chat room
+        function leaveRoom() {
+            document.getElementById('chat-page').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
+        }
+
+        // Event listener for the send button
+        document.getElementById('send-button').addEventListener('click', sendMessage);
+
+        // Event listener for pressing 'Enter' to send a message
+        document.getElementById('message').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Close menu options when clicking outside
+        document.addEventListener('click', function(event) {
+            const openMenus = document.querySelectorAll('.menu-options[style="display: block;"]');
+            openMenus.forEach(menu => {
+                menu.style.display = 'none';
+            });
+        });
+
+        // Prevent closing menu options when clicking inside them
+        document.querySelectorAll('.menu-options').forEach(menu => {
+            menu.addEventListener('click', function(event) {
+                event.stopPropagation();
+            });
+        });
+    </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Green Tea</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <script defer src="script.js"></script>
+</head>
+<body class="light-mode">
+    <!-- Login Page -->
+    <div class="login-container" id="login-page">
+        <h1>Project Green Tea</h1>
+        <p>A chat application for real-time conversations</p>
+        <input type="text" id="username" placeholder="Enter your username">
+        <button onclick="login()">Join</button>
+    </div>
+
+    <!-- Chat Page -->
+    <div class="chat-container" id="chat-page" style="display: none;">
+        <button id="settings-button" onclick="openSettings()">⚙️</button>
+        <button id="leave-button" onclick="leaveRoom()">🚪</button>
+        <div id="chat-box"></div>
+        <input type="text" id="message" placeholder="Type a message...">
+        <button id="send-button">Send</button>
+    </div>
+
+    <!-- Settings Page -->
+    <div class="settings-container" id="settings-page" style="display: none;">
+        <h1>Settings</h1>
+        <label>
+            <input type="checkbox" id="dark-mode-toggle"> Dark Mode
+        </label>
+        <button onclick="goBack()">Back</button>
+    </div>
+</body>
+</html>
