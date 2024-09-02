@@ -111,10 +111,33 @@
             border-radius: 5px;
             background-color: #e5e5ea;
             margin-bottom: 10px;
+            word-wrap: break-word;
         }
 
         body.dark-mode .message {
             background-color: #555;
+        }
+
+        .message.person1 {
+            background-color: #d1e7dd;
+        }
+
+        .message.person2 {
+            background-color: #f8d7da;
+        }
+
+        .message .three-dot-menu {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        body.dark-mode .message .three-dot-menu {
+            color: #fff;
         }
 
         #message {
@@ -229,17 +252,6 @@
         .menu-options button:hover {
             background: #45a049;
         }
-
-        .three-dot-menu {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 18px;
-        }
-
-        body.dark-mode .three-dot-menu {
-            color: #fff;
-        }
     </style>
 </head>
 <body class="light-mode">
@@ -270,14 +282,18 @@
         <button onclick="goBack()">Back</button>
     </div>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script>
-        localStorage.clear(); // Clear local storage
+        const socket = io();
+
+        let currentUser = null;
 
         // Function to handle login
         function login() {
-            const enteredUsername = document.getElementById('username').value;
+            const enteredUsername = document.getElementById('username').value.trim();
             if (enteredUsername) {
-                localStorage.setItem('username', enteredUsername);
+                currentUser = enteredUsername;
+                localStorage.setItem('username', currentUser);
                 document.getElementById('main-menu').style.display = 'none';
                 document.getElementById('chat-page').style.display = 'flex';
             } else {
@@ -285,71 +301,81 @@
             }
         }
 
-        // Function to send message
+        // Function to send a message
         function sendMessage() {
             const messageInput = document.getElementById('message');
             const message = messageInput.value.trim();
             if (message) {
-                const chatBox = document.getElementById('chat-box');
-                const messageElement = document.createElement('div');
-                messageElement.classList.add('message');
-                messageElement.innerHTML = `
-                    <span class="username">${localStorage.getItem('username')}:</span>
-                    <span class="message-text">${message}</span>
-                    <button class="three-dot-menu" onclick="toggleMenu(event)">
-                        <i class="fas fa-ellipsis-v"></i>
-                    </button>
-                    <div class="menu-options">
-                        <button onclick="editMessage(event)">Edit</button>
-                        <button onclick="deleteMessage(event)">Delete</button>
-                    </div>
-                `;
-                chatBox.appendChild(messageElement);
+                socket.emit('chat message', { username: currentUser, message });
+                addMessage(currentUser, message);
                 messageInput.value = '';
-                chatBox.scrollTop = chatBox.scrollHeight;
+            } else {
+                alert('Message cannot be empty');
             }
         }
 
-        // Function to toggle the three-dot menu
-        function toggleMenu(event) {
-            const allMenus = document.querySelectorAll('.menu-options');
-            allMenus.forEach(menu => menu.style.display = 'none');
-            const menuOptions = event.target.closest('.message').querySelector('.menu-options');
-            menuOptions.style.display = 'block';
-            event.stopPropagation(); // Prevents event from bubbling up to the document
+        // Function to add a message to the chat box
+        function addMessage(username, message) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${username.replace(/\s+/g, '').toLowerCase()}`;
+            messageDiv.innerHTML = `${username}: ${message} 
+            <button class="three-dot-menu" onclick="toggleMenu(this)">
+                <i class="fas fa-ellipsis-v"></i>
+            </button>
+            <div class="menu-options">
+                <button onclick="editMessage(this)">Edit</button>
+                <button onclick="deleteMessage(this)">Delete</button>
+            </div>`;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Function to toggle three-dot menu visibility
+        function toggleMenu(button) {
+            const menuOptions = button.nextElementSibling;
+            menuOptions.style.display = menuOptions.style.display === 'block' ? 'none' : 'block';
         }
 
         // Function to edit a message
-        function editMessage(event) {
-            const messageElement = event.target.closest('.message');
-            const messageTextElement = messageElement.querySelector('.message-text');
-            const newMessage = prompt('Edit your message:', messageTextElement.innerText.replace(' (edited)', ''));
-            if (newMessage !== null) {
-                messageTextElement.innerText = newMessage + ' (edited)';
+        function editMessage(button) {
+            const messageDiv = button.closest('.message');
+            const messageText = messageDiv.textContent.replace(/\s*Edit\s*Delete$/, '').trim();
+            const newMessage = prompt('Edit message:', messageText);
+            if (newMessage) {
+                messageDiv.innerHTML = `${currentUser}: ${newMessage} 
+                <button class="three-dot-menu" onclick="toggleMenu(this)">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+                <div class="menu-options">
+                    <button onclick="editMessage(this)">Edit</button>
+                    <button onclick="deleteMessage(this)">Delete</button>
+                </div>`;
+                // Optionally, you might want to emit an update event here
             }
-            event.stopPropagation();
         }
 
         // Function to delete a message
-        function deleteMessage(event) {
-            const messageElement = event.target.closest('.message');
-            messageElement.remove();
-            event.stopPropagation();
+        function deleteMessage(button) {
+            const messageDiv = button.closest('.message');
+            messageDiv.remove();
+            // Optionally, you might want to emit a delete event here
         }
 
         // Function to handle dark mode toggle
         document.getElementById('dark-mode-toggle').addEventListener('change', function() {
-            document.body.classList.toggle('dark-mode');
-            document.body.classList.toggle('light-mode');
+            document.body.classList.toggle('dark-mode', this.checked);
+            localStorage.setItem('darkMode', this.checked);
         });
 
-        // Function to open settings
+        // Function to open settings page
         function openSettings() {
             document.getElementById('chat-page').style.display = 'none';
             document.getElementById('settings-page').style.display = 'flex';
+            document.getElementById('dark-mode-toggle').checked = localStorage.getItem('darkMode') === 'true';
         }
 
-        // Function to go back from settings
+        // Function to go back to the chat page from settings
         function goBack() {
             document.getElementById('settings-page').style.display = 'none';
             document.getElementById('chat-page').style.display = 'flex';
@@ -359,70 +385,37 @@
         function leaveRoom() {
             document.getElementById('chat-page').style.display = 'none';
             document.getElementById('main-menu').style.display = 'flex';
+            currentUser = null;
         }
 
-        // Event listener for the send button
-        document.getElementById('send-button').addEventListener('click', sendMessage);
+        // Initialize dark mode
+        document.body.classList.toggle('dark-mode', localStorage.getItem('darkMode') === 'true');
 
-        // Event listener for pressing 'Enter' to send a message
+        // Listen for chat messages from the server
+        socket.on('chat message', function(data) {
+            addMessage(data.username, data.message);
+        });
+
+        // Handle Enter key press for sending messages
         document.getElementById('message').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
+                event.preventDefault();
                 sendMessage();
             }
         });
 
-        // Close menu options when clicking outside
+        // Handle document click to close three-dot menu
         document.addEventListener('click', function(event) {
-            const openMenus = document.querySelectorAll('.menu-options[style="display: block;"]');
-            openMenus.forEach(menu => {
-                menu.style.display = 'none';
-            });
+            if (!event.target.classList.contains('three-dot-menu')) {
+                document.querySelectorAll('.menu-options').forEach(menu => {
+                    menu.style.display = 'none';
+                });
+            }
         });
 
-        // Prevent closing menu options when clicking inside them
-        document.querySelectorAll('.menu-options').forEach(menu => {
-            menu.addEventListener('click', function(event) {
-                event.stopPropagation();
-            });
-        });
+        // Handle Send button click
+        document.getElementById('send-button').addEventListener('click', sendMessage);
     </script>
 </body>
 </html>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Green Tea</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="/socket.io/socket.io.js"></script>
-    <script defer src="script.js"></script>
-</head>
-<body class="light-mode">
-    <!-- Login Page -->
-    <div class="login-container" id="login-page">
-        <h1>Project Green Tea</h1>
-        <p>A chat application for real-time conversations</p>
-        <input type="text" id="username" placeholder="Enter your username">
-        <button onclick="login()">Join</button>
-    </div>
 
-    <!-- Chat Page -->
-    <div class="chat-container" id="chat-page" style="display: none;">
-        <button id="settings-button" onclick="openSettings()">⚙️</button>
-        <button id="leave-button" onclick="leaveRoom()">🚪</button>
-        <div id="chat-box"></div>
-        <input type="text" id="message" placeholder="Type a message...">
-        <button id="send-button">Send</button>
-    </div>
-
-    <!-- Settings Page -->
-    <div class="settings-container" id="settings-page" style="display: none;">
-        <h1>Settings</h1>
-        <label>
-            <input type="checkbox" id="dark-mode-toggle"> Dark Mode
-        </label>
-        <button onclick="goBack()">Back</button>
-    </div>
-</body>
-</html>
