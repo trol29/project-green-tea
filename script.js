@@ -1,16 +1,20 @@
 localStorage.clear(); // Clear local storage
 
-// Function to handle login
 function login() {
     const enteredUsername = document.getElementById('username').value;
+    console.log('Entered Username:', enteredUsername);  // Debugging line
+
     if (enteredUsername) {
         localStorage.setItem('username', enteredUsername);
         document.getElementById('login-page').style.display = 'none';
         document.getElementById('chat-page').style.display = 'flex';
+        console.log('Login successful, switching to chat page');  // Debugging line
     } else {
         alert('Please enter a username');
+        console.log('No username entered, staying on login page');  // Debugging line
     }
 }
+
 
 // Function to send message
 function sendMessage() {
